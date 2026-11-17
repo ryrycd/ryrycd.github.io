@@ -8,6 +8,8 @@
 <meta name="description" content="You found the hand.">
 <meta property="og:title" content="HAND | Eudai Films">
 <meta property="og:description" content="You found the hand.">
+<meta property="og:image" content="https://ryrycd.github.io/HAND/premiere/poster.jpg">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="https://framerusercontent.com/images/8L66Ak04owTI3HRCzaubpVoOoV4.png">
 <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=switzer@400,500,600,800,900&display=swap">
 <style>
@@ -160,7 +162,7 @@
     <clipPath id="skinSide"><rect x="0" y="-60" width="900" height="120"/></clipPath>
   </defs>
 
-  <g id="handBody" style="transform-origin: 300px 820px; transform-box: view-box;">
+  <g id="handBody">
     <!-- silhouette: every piece shares one gradient and one outline -->
     <g filter="url(#outline)" fill="url(#skin)">
       <rect x="140" y="398" width="82" height="244" rx="41" transform="rotate(-34 181 627)"/>
@@ -208,6 +210,7 @@
   </g>
 
   <!-- splinter: local x axis points out of the wound, everything at x<0 is under the skin -->
+  <g id="splinterFollow">
   <g id="splinterWorld" transform="translate(331 534) rotate(-58)">
     <g clip-path="url(#skinSide)">
       <g id="splinter">
@@ -215,6 +218,7 @@
         <path d="M-120 -1 L120 -6 M-40 3 L110 5 M10 -4 L90 -8" stroke="#c99a62" stroke-width="1.6" opacity=".7" fill="none"/>
       </g>
     </g>
+  </g>
   </g>
 </svg>
 </div>
@@ -227,7 +231,7 @@
 
 <div class="cta" id="cta">
   <a class="handoff" id="handoff" href="/HAND/premiere/"><span class="play" aria-hidden="true"></span>HAND-OFF</a>
-  <span class="sub">Watch the premiere</span>
+  <span class="sub">Are you ready to scream?</span>
 </div>
 
 <div class="flood" id="flood"></div>
@@ -264,16 +268,24 @@
     if (!window.gsap) { cta.style.opacity = 1; cta.classList.add("ready"); return; }
     finalState();
   } else {
+    gsap.set(["#handBody", "#splinterFollow"], { svgOrigin: "300 820" });
+    gsap.set("#infection", { svgOrigin: "330 532" });
     var tl = gsap.timeline({ delay: 0.25 });
 
     // hand rises into frame
-    tl.from("#handBody", { y: 160, opacity: 0, duration: 0.9, ease: "power3.out" }, 0)
+    tl.from("#handBody, #splinterFollow", { y: 160, opacity: 0, duration: 0.9, ease: "power3.out" }, 0)
       .from("#splinterWorld", { opacity: 0, duration: 0.4 }, 0.5)
       .from("#infection", { opacity: 0, duration: 1.2 }, 0.4)
       .to("#found", { opacity: 1, duration: 0.8 }, 0.6)
 
       // it throbs (swollen, infected)
-      .to("#handBody", { scale: 1.035, duration: 0.18, yoyo: true, repeat: 5, ease: "sine.inOut" }, 1.0)
+      .to("#handBody, #splinterFollow", { keyframes: [
+          { scale: 1.025, duration: 0.16 }, { scale: 1.01, duration: 0.14 },
+          { scale: 1.05, duration: 0.16 }, { scale: 1.035, duration: 0.14 },
+          { scale: 1.08, duration: 0.18 }, { scale: 1.065, duration: 0.14 },
+          { scale: 1.1, duration: 0.2 }, { scale: 1.09, duration: 0.18 }
+        ], ease: "sine.inOut" }, 1.0)
+      .to("#infection", { scale: 1.45, duration: 1.3, ease: "power1.in" }, 1.0)
       .fromTo("#splinter", { x: -92 }, { x: -60, duration: 0.25, ease: "power2.out" }, 1.15)
       .to("#splinter", { x: -70, duration: 0.15 }, 1.42)
       .to("#splinter", { x: -20, duration: 0.3, ease: "power2.out" }, 1.6)
@@ -282,7 +294,8 @@
       // it pops out
       .to("#splinter", { x: 210, duration: 0.32, ease: "power4.in" }, 2.3)
       .to("#wound", { attr: { rx: 10, ry: 7 }, duration: 0.25, ease: "back.out(3)" }, 2.55)
-      .to("#handBody", { scale: 1.0, duration: 0.3, ease: "power2.out" }, 2.55)
+      .to("#handBody, #splinterFollow", { scale: 1.0, duration: 1.1, ease: "elastic.out(1, 0.45)" }, 2.55)
+      .to("#infection", { scale: 0.9, opacity: 0.55, duration: 1.6, ease: "power2.out" }, 2.6)
       .to("#splinterWorld", { y: "+=520", x: "+=60", rotation: 140, opacity: 0, duration: 1.1, ease: "power2.in" }, 2.62)
 
       // blood wells up and pours

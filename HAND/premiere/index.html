@@ -8,7 +8,8 @@
 <meta name="description" content="HAND, a Eudai Films short. Premiering now.">
 <meta property="og:title" content="HAND | Premiere">
 <meta property="og:description" content="Eleven hands. Eleven cities. Premiering now.">
-<meta property="og:image" content="poster.jpg">
+<meta property="og:image" content="https://ryrycd.github.io/HAND/premiere/poster.jpg">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="https://framerusercontent.com/images/8L66Ak04owTI3HRCzaubpVoOoV4.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -170,9 +171,7 @@
 <main class="page">
   <section>
     <div class="player" id="player">
-      <video id="video" playsinline preload="auto" poster="poster.jpg">
-        <source src="hand.mp4" type="video/mp4">
-      </video>
+      <video id="video" playsinline preload="auto" poster="poster.jpg"></video>
 
       <div class="wait" id="wait">
         <div class="bg" id="waitBg"></div>
@@ -256,9 +255,11 @@
   </aside>
 </main>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.13/hls.min.js"></script>
 <script>
 (function () {
   var COUNTDOWN = 5;
+  var STREAM = "hls/hand.m3u8";
   var video = document.getElementById("video");
   var player = document.getElementById("player");
   var wait = document.getElementById("wait");
@@ -270,6 +271,15 @@
   var descViews = document.getElementById("descViews");
   var unmute = document.getElementById("unmute");
   var live = false;
+
+  // stream the film in short chunks (Safari plays HLS itself; other browsers use hls.js)
+  if (window.Hls && Hls.isSupported()) {
+    var hls = new Hls({ maxBufferLength: 30 });
+    hls.loadSource(STREAM);
+    hls.attachMedia(video);
+  } else {
+    video.src = STREAM;
+  }
 
   // blurred poster behind the countdown, or a dark red glow if there is no poster yet
   var probe = new Image();

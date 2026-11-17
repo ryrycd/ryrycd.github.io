@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>HAND | Eudai Films</title>
+<meta name="description" content="You found the hand.">
+<meta property="og:title" content="HAND | Eudai Films">
+<meta property="og:description" content="You found the hand.">
+<link rel="icon" href="https://framerusercontent.com/images/8L66Ak04owTI3HRCzaubpVoOoV4.png">
+<link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=switzer@400,500,600,800,900&display=swap">
+<style>
+  :root {
+    --bg: #ffffff;
+    --ink: #111111;
+    --pill: #ededed;
+    --blood: #8e0010;
+    --blood-hi: #b5001a;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Switzer", "Inter", system-ui, sans-serif;
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Eudai header, same as the main site */
+  header {
+    position: fixed; inset: 0 0 auto 0; z-index: 20;
+    display: flex; align-items: center; justify-content: center;
+    height: 64px; padding: 0 18px;
+  }
+  nav { position: absolute; left: 18px; display: flex; gap: 10px; }
+  nav a {
+    font-size: 12px; font-weight: 500; color: var(--ink); text-decoration: none;
+    background: var(--pill); padding: 3px 6px; border-radius: 2px;
+    transition: background .2s, color .2s;
+  }
+  nav a:hover { background: var(--ink); color: #fff; }
+  .logo img { height: 34px; width: auto; display: block; }
+
+  .found {
+    position: fixed; top: 84px; left: 0; right: 0; z-index: 5;
+    text-align: center; font-weight: 600; letter-spacing: -0.02em;
+    font-size: clamp(14px, 1.6vw, 18px); color: #555; opacity: 0;
+  }
+
+  /* The hand */
+  .stage { position: fixed; inset: 0; }
+  #hand {
+    position: absolute; bottom: 0; left: 50%;
+    height: min(84vh, 150vw); width: auto;
+    transform: translateX(-50%);
+    overflow: visible; cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  #hand:focus { outline: none; }
+
+  /* Blood pool along the bottom of the screen */
+  .pool {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 8;
+    height: 0; background: var(--blood);
+    pointer-events: none;
+  }
+  .pool svg { position: absolute; left: 0; bottom: 100%; width: 200%; height: 28px; display: block; }
+  .pool .wave { animation: slosh 3.2s linear infinite; }
+  @keyframes slosh { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+  /* HAND-OFF button */
+  .cta {
+    position: fixed; left: 50%; bottom: clamp(18px, 4.5vh, 56px); z-index: 12;
+    transform: translate(-50%, 0);
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+    opacity: 0; pointer-events: none;
+  }
+  .cta.ready { pointer-events: auto; }
+  .handoff {
+    display: inline-flex; align-items: center; gap: 14px;
+    font-family: inherit; font-weight: 900; letter-spacing: -0.03em;
+    font-size: clamp(26px, 4.4vw, 50px); line-height: 1;
+    color: #fff; background: var(--ink); text-decoration: none;
+    padding: 0.42em 0.7em 0.46em 0.6em; border-radius: 999px; white-space: nowrap;
+    box-shadow: 0 10px 0 -2px var(--blood), 0 18px 40px rgba(0,0,0,.35);
+    transition: background .2s, transform .2s;
+    position: relative;
+  }
+  .handoff:hover, .handoff:focus-visible { background: var(--blood-hi); transform: translateY(-3px) rotate(-1deg); outline: none; }
+  .handoff .play {
+    width: 0.78em; height: 0.78em; border-radius: 50%; background: #fff;
+    display: grid; place-items: center; flex: none;
+  }
+  .handoff .play::after {
+    content: ""; margin-left: 0.08em;
+    border-left: 0.24em solid var(--ink); border-top: 0.15em solid transparent; border-bottom: 0.15em solid transparent;
+  }
+  .handoff:hover .play::after { border-left-color: var(--blood-hi); }
+  .sub { font-size: 13px; font-weight: 500; color: #fff; opacity: .85; letter-spacing: .02em; text-shadow: 0 1px 2px rgba(0,0,0,.4); }
+
+  .flood {
+    position: fixed; inset: 0; z-index: 30; background: var(--blood);
+    transform: translateY(101%); pointer-events: none;
+  }
+
+  @media (max-width: 600px) {
+    header { justify-content: flex-start; }
+    nav { gap: 6px; left: auto; right: 12px; }
+    .logo img { height: 28px; }
+    .found { top: 74px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <nav>
+    <a href="/films/">Films</a>
+    <a href="/shop/">Shop</a>
+    <a href="/contact/">Contact</a>
+  </nav>
+  <a class="logo" href="/" aria-label="Eudai Films home">
+    <img src="https://framerusercontent.com/images/8L66Ak04owTI3HRCzaubpVoOoV4.png" alt="Eudai">
+  </a>
+</header>
+
+<p class="found" id="found">You found the hand.</p>
+
+<div class="stage">
+<svg id="hand" viewBox="0 0 600 820" role="link" tabindex="-1" aria-label="HAND-OFF: watch the premiere">
+  <defs>
+    <radialGradient id="skin" gradientUnits="userSpaceOnUse" cx="300" cy="470" r="430">
+      <stop offset="0" stop-color="#f2d2b6"/>
+      <stop offset=".6" stop-color="#e6b896"/>
+      <stop offset="1" stop-color="#cf9774"/>
+    </radialGradient>
+    <radialGradient id="infect" gradientUnits="userSpaceOnUse" cx="330" cy="532" r="100">
+      <stop offset="0" stop-color="#b3263a" stop-opacity=".75"/>
+      <stop offset=".45" stop-color="#c8545a" stop-opacity=".35"/>
+      <stop offset="1" stop-color="#d27a70" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="wood" x1="0" y1="-10" x2="0" y2="10" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#a87843"/>
+      <stop offset=".5" stop-color="#7a4f25"/>
+      <stop offset="1" stop-color="#5a3816"/>
+    </linearGradient>
+    <filter id="outline" x="-10%" y="-10%" width="120%" height="120%">
+      <feMorphology in="SourceAlpha" operator="dilate" radius="3.2" result="fat"/>
+      <feFlood flood-color="#1a1210"/>
+      <feComposite in2="fat" operator="in" result="line"/>
+      <feMerge><feMergeNode in="line"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="goo" filterUnits="userSpaceOnUse" x="0" y="0" width="600" height="900">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="b"/>
+      <feColorMatrix in="b" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 24 -10" result="g"/>
+      <feComposite in="SourceGraphic" in2="g" operator="atop"/>
+    </filter>
+    <clipPath id="skinSide"><rect x="0" y="-60" width="900" height="120"/></clipPath>
+  </defs>
+
+  <g id="handBody" style="transform-origin: 300px 820px; transform-box: view-box;">
+    <!-- silhouette: every piece shares one gradient and one outline -->
+    <g filter="url(#outline)" fill="url(#skin)">
+      <rect x="140" y="398" width="82" height="244" rx="41" transform="rotate(-34 181 627)"/>
+      <rect x="164" y="150" width="70" height="292" rx="35" transform="rotate(-6 199 440)"/>
+      <rect x="240" y="100" width="74" height="342" rx="37" transform="rotate(-1 277 440)"/>
+      <rect x="318" y="128" width="70" height="314" rx="35" transform="rotate(4 353 440)"/>
+      <rect x="392" y="212" width="60" height="240" rx="30" transform="rotate(11 422 450)"/>
+      <path d="M168 400 C168 372 190 362 220 362 L420 368 C448 370 462 392 460 420 L456 600 C454 660 438 700 412 728 L410 830 L196 830 L194 730 C170 700 160 660 160 610 Z"/>
+      <ellipse cx="222" cy="592" rx="72" ry="100"/>
+    </g>
+
+    <!-- creases -->
+    <g fill="none" stroke="#9c6a52" stroke-linecap="round" stroke-width="3" opacity=".5">
+      <g transform="rotate(-6 199 440)"><path d="M178 340 q21 6 42 0"/><path d="M180 252 q19 5 38 0"/></g>
+      <g transform="rotate(-1 277 440)"><path d="M254 330 q23 6 46 0"/><path d="M256 228 q21 5 42 0"/></g>
+      <g transform="rotate(4 353 440)"><path d="M332 336 q21 6 42 0"/><path d="M334 242 q19 5 38 0"/></g>
+      <g transform="rotate(11 422 450)"><path d="M404 364 q18 5 36 0"/><path d="M406 290 q16 4 32 0"/></g>
+      <path d="M150 520 q-10 18 -4 34" transform="rotate(-34 181 627)"/>
+    </g>
+    <g fill="none" stroke="#9c6a52" stroke-linecap="round" stroke-width="3.4" opacity=".55">
+      <path d="M448 452 C398 440 330 448 258 420"/>
+      <path d="M176 498 C236 488 300 500 408 532"/>
+      <path d="M204 446 C262 500 288 606 264 724"/>
+      <path d="M330 690 C326 640 330 600 340 560" opacity=".5"/>
+    </g>
+
+    <!-- infection around the splinter -->
+    <circle id="infection" cx="330" cy="532" r="100" fill="url(#infect)"/>
+
+    <!-- blood (gooey so drips merge like liquid) -->
+    <g id="blood" filter="url(#goo)" fill="#8e0010" stroke="#8e0010" stroke-linecap="round">
+      <ellipse id="spread" cx="331" cy="536" rx="0" ry="0" stroke="none"/>
+      <path class="drip" d="M331 536 C328 600 336 670 331 730 S325 800 329 860" fill="none" stroke-width="17"/>
+      <path class="drip" d="M322 534 C311 576 296 630 298 700 S294 790 296 860" fill="none" stroke-width="12"/>
+      <path class="drip" d="M339 538 C350 586 368 640 367 710 S371 800 369 860" fill="none" stroke-width="11"/>
+      <path class="drip" d="M334 538 C337 562 342 590 339 625" fill="none" stroke-width="9"/>
+      <path class="drip" d="M326 538 C319 552 313 570 315 600" fill="none" stroke-width="8"/>
+      <circle class="head" r="0" stroke="none"/>
+      <circle class="head" r="0" stroke="none"/>
+      <circle class="head" r="0" stroke="none"/>
+      <circle class="head" r="0" stroke="none"/>
+      <circle class="head" r="0" stroke="none"/>
+    </g>
+    <ellipse id="wound" cx="331" cy="534" rx="0" ry="0" fill="#3d0006"/>
+  </g>
+
+  <!-- splinter: local x axis points out of the wound, everything at x<0 is under the skin -->
+  <g id="splinterWorld" transform="translate(331 534) rotate(-58)">
+    <g clip-path="url(#skinSide)">
+      <g id="splinter">
+        <polygon points="-175,0 -70,-5 40,-9 132,-12 126,-5 138,-2 127,3 134,11 44,9 -70,5" fill="url(#wood)" stroke="#3a220c" stroke-width="2" stroke-linejoin="round"/>
+        <path d="M-120 -1 L120 -6 M-40 3 L110 5 M10 -4 L90 -8" stroke="#c99a62" stroke-width="1.6" opacity=".7" fill="none"/>
+      </g>
+    </g>
+  </g>
+</svg>
+</div>
+
+<div class="pool" id="pool">
+  <svg viewBox="0 0 1200 28" preserveAspectRatio="none" aria-hidden="true">
+    <path class="wave" fill="#8e0010" d="M0 28 V14 Q75 0 150 14 T300 14 T450 14 T600 14 T750 14 T900 14 T1050 14 T1200 14 V28 Z"/>
+  </svg>
+</div>
+
+<div class="cta" id="cta">
+  <a class="handoff" id="handoff" href="/HAND/premiere/"><span class="play" aria-hidden="true"></span>HAND-OFF</a>
+  <span class="sub">Watch the premiere</span>
+</div>
+
+<div class="flood" id="flood"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script>
+(function () {
+  var DEST = "/HAND/premiere/";
+  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var drips = Array.prototype.slice.call(document.querySelectorAll("#blood .drip"));
+  var heads = Array.prototype.slice.call(document.querySelectorAll("#blood .head"));
+  var widths = drips.map(function (d) { return parseFloat(d.getAttribute("stroke-width")); });
+  var lens = drips.map(function (d) { return d.getTotalLength(); });
+  drips.forEach(function (d, i) { d.style.strokeDasharray = lens[i] + " " + (lens[i] + 10); d.style.strokeDashoffset = lens[i]; });
+
+  var cta = document.getElementById("cta");
+  var leaving = false;
+  if (window.gsap) { gsap.set(cta, { xPercent: -50, x: 0, left: "50%" }); cta.style.transform = ""; gsap.set(cta, { xPercent: -50, yPercent: 160 }); gsap.set("#flood", { yPercent: 101 }); }
+
+  function poolHeight() { return Math.round(Math.max(70, window.innerHeight * 0.10)); }
+
+  function finalState() {
+    gsap.set("#found", { opacity: 1 });
+    gsap.set("#splinterWorld", { opacity: 0 });
+    gsap.set("#wound", { attr: { rx: 10, ry: 7 } });
+    gsap.set("#spread", { attr: { rx: 24, ry: 18 } });
+    drips.forEach(function (d) { d.style.strokeDashoffset = 0; });
+    gsap.set("#pool", { height: poolHeight() });
+    gsap.set(cta, { opacity: 1, yPercent: 0, xPercent: -50 });
+    cta.classList.add("ready");
+  }
+
+  if (!window.gsap || reduce) {
+    if (!window.gsap) { cta.style.opacity = 1; cta.classList.add("ready"); return; }
+    finalState();
+  } else {
+    var tl = gsap.timeline({ delay: 0.25 });
+
+    // hand rises into frame
+    tl.from("#handBody", { y: 160, opacity: 0, duration: 0.9, ease: "power3.out" }, 0)
+      .from("#splinterWorld", { opacity: 0, duration: 0.4 }, 0.5)
+      .from("#infection", { opacity: 0, duration: 1.2 }, 0.4)
+      .to("#found", { opacity: 1, duration: 0.8 }, 0.6)
+
+      // it throbs (swollen, infected)
+      .to("#handBody", { scale: 1.035, duration: 0.18, yoyo: true, repeat: 5, ease: "sine.inOut" }, 1.0)
+      .fromTo("#splinter", { x: -92 }, { x: -60, duration: 0.25, ease: "power2.out" }, 1.15)
+      .to("#splinter", { x: -70, duration: 0.15 }, 1.42)
+      .to("#splinter", { x: -20, duration: 0.3, ease: "power2.out" }, 1.6)
+      .to("#splinter", { rotation: 3, duration: 0.06, yoyo: true, repeat: 5, transformOrigin: "0 0" }, 1.9)
+
+      // it pops out
+      .to("#splinter", { x: 210, duration: 0.32, ease: "power4.in" }, 2.3)
+      .to("#wound", { attr: { rx: 10, ry: 7 }, duration: 0.25, ease: "back.out(3)" }, 2.55)
+      .to("#handBody", { scale: 1.0, duration: 0.3, ease: "power2.out" }, 2.55)
+      .to("#splinterWorld", { y: "+=520", x: "+=60", rotation: 140, opacity: 0, duration: 1.1, ease: "power2.in" }, 2.62)
+
+      // blood wells up and pours
+      .to("#spread", { attr: { rx: 24, ry: 18 }, duration: 0.7, ease: "power2.out" }, 2.6);
+
+    var starts = [2.75, 2.9, 3.05, 2.8, 2.95];
+    var durs = [1.6, 1.9, 2.1, 0.9, 0.8];
+    drips.forEach(function (d, i) {
+      var head = heads[i];
+      var o = { p: 0 };
+      tl.to(o, {
+        p: 1, duration: durs[i], ease: "power1.in",
+        onUpdate: function () {
+          var L = lens[i] * o.p;
+          d.style.strokeDashoffset = lens[i] - L;
+          var pt = d.getPointAtLength(L);
+          head.setAttribute("cx", pt.x); head.setAttribute("cy", pt.y);
+          head.setAttribute("r", widths[i] * (0.62 + 0.25 * Math.sin(o.p * Math.PI)));
+        },
+        onComplete: function () { head.setAttribute("r", widths[i] * 0.5); }
+      }, starts[i]);
+    });
+
+    // pool fills, button rises out of it
+    tl.to("#pool", { height: function () { return poolHeight(); }, duration: 1.4, ease: "power2.out" }, 3.9)
+      .to(cta, { opacity: 1, duration: 0.3 }, 4.6)
+      .to(cta, { yPercent: 0, duration: 0.9, ease: "back.out(1.6)",
+        onComplete: function () { cta.classList.add("ready"); } }, 4.6);
+
+    // slow ongoing drip + heartbeat after the intro
+    tl.add(function () {
+      gsap.to("#handBody", { scale: 1.012, duration: 0.5, yoyo: true, repeat: -1, repeatDelay: 0.9, ease: "sine.inOut" });
+    }, 5.6);
+
+    // let people skip the intro
+    window.__skip = function () { tl.progress(1); };
+  }
+
+  function go(e) {
+    if (e) e.preventDefault();
+    if (leaving) return;
+    if (!cta.classList.contains("ready") && window.__skip) { window.__skip(); return; }
+    leaving = true;
+    if (!window.gsap || reduce) { location.href = DEST; return; }
+    gsap.to("#flood", { yPercent: 0, duration: 0.75, ease: "power3.in", onComplete: function () { location.href = DEST; } });
+  }
+  document.getElementById("handoff").addEventListener("click", go);
+  document.getElementById("hand").addEventListener("click", go);
+
+  // coming back with the browser's Back button should show the finished page, not a red screen
+  window.addEventListener("pageshow", function (ev) {
+    if (ev.persisted) { leaving = false; if (window.gsap) gsap.set("#flood", { yPercent: 101 }); }
+  });
+})();
+</script>
+</body>
+</html>

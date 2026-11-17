@@ -327,6 +327,7 @@
     if (!cta.classList.contains("ready") && window.__skip) { window.__skip(); return; }
     leaving = true;
     if (!window.gsap || reduce) { location.href = DEST; return; }
+    setTimeout(function () { location.href = DEST; }, 1100);
     gsap.to("#flood", { yPercent: 0, duration: 0.75, ease: "power3.in", onComplete: function () { location.href = DEST; } });
   }
   document.getElementById("handoff").addEventListener("click", go);

@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>HAND Pitch Script</title>
+<link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=switzer@400,500,600,700,800&display=swap">
+<style>
+  :root { --bg:#0d0d0f; --card:#17171b; --line:#26262c; --text:#f4f2ee; --muted:#9a978f; --red:#c8102e; --hi:#2a1215; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font-family:"Switzer",system-ui,sans-serif; -webkit-font-smoothing:antialiased; }
+  .wrap { max-width:640px; margin:0 auto; padding:20px 16px 60px; }
+  h1 { font-size:28px; font-weight:800; letter-spacing:-.02em; margin:4px 0 2px; }
+  .meta { color:var(--muted); font-size:14px; margin-bottom:18px; }
+  .who { position:sticky; top:0; z-index:2; background:var(--bg); padding:10px 0 12px; display:flex; flex-wrap:wrap; gap:8px; border-bottom:1px solid var(--line); margin-bottom:16px; }
+  .who span { color:var(--muted); font-size:13px; width:100%; }
+  .chip { font:inherit; font-size:15px; font-weight:600; color:var(--text); background:var(--card); border:1px solid var(--line); border-radius:999px; padding:8px 14px; cursor:pointer; }
+  .chip[aria-pressed="true"] { background:var(--red); border-color:var(--red); }
+  .slide { margin:22px 0 8px; font-size:12px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--red); }
+  .row { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:12px 14px; margin:8px 0; }
+  .row .n { font-size:13px; font-weight:700; color:var(--muted); margin-bottom:4px; }
+  .row .t { font-size:20px; line-height:1.35; font-weight:500; }
+  .row.act .t { font-size:16px; font-style:italic; color:var(--muted); }
+  .row.mine { background:var(--hi); border-color:var(--red); }
+  .row.mine .n { color:#ff8a98; }
+  .row.mine.act .t { color:var(--text); }
+  .dim .row:not(.mine) { opacity:.45; }
+  .box { margin-top:28px; border-top:1px solid var(--line); padding-top:16px; color:var(--muted); font-size:15px; line-height:1.5; }
+  .box b { color:var(--text); }
+  .box ul { padding-left:18px; margin:6px 0 14px; }
+  a { color:#ff8a98; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>HAND rocket pitch</h1>
+  <div class="meta">Team 10 · Session 12 · Wed 11/18 · about 40 seconds</div>
+
+  <div class="who" id="who"><span>Tap your name to highlight your part</span></div>
+
+  <div id="script">
+    <div class="slide">Slide 1 · Breaking news</div>
+    <div class="row act" data-who="Kayee Jeda"><div class="n">Kayee &amp; Jeda</div><div class="t">Scream from the back of the room. (Slide 1 is already up. Ryan presses → at the start of every new slide.)</div></div>
+    <div class="row" data-who="Ryan"><div class="n">Ryan (news anchor voice)</div><div class="t">This just in: giant hands are floating over eleven U.S. cities.</div></div>
+
+    <div class="slide">Slide 2 · 11 cities</div>
+    <div class="row" data-who="Omar"><div class="n">Omar</div><div class="t">It's <i>HAND</i>, Eudai's next short. A student ignores a splinter until her hand swells. So we made the hand impossible to ignore.</div></div>
+    <div class="row" data-who="Omar"><div class="n">Omar</div><div class="t">Each hand carries one letter of a bit.ly link. Nobody can solve it alone.</div></div>
+
+    <div class="slide">Slide 3 · Every hand leads to Eudai</div>
+    <div class="row" data-who="Michael"><div class="n">Michael</div><div class="t">The link opens a hidden page on Eudai's own site, then the premiere on Eudai's YouTube. Fans find the film and the studio.</div></div>
+
+    <div class="slide">Slide 4 · Budget</div>
+    <div class="row" data-who="Michael"><div class="n">Michael</div><div class="t">Eleven cities. Under ten thousand dollars.</div></div>
+
+    <div class="slide">Slide 5 · The last letter</div>
+    <div class="row" data-who="Ryan"><div class="n">Ryan</div><div class="t">Ten cities found. We just need one more letter.</div></div>
+    <div class="row act" data-who="AJ"><div class="n">AJ</div><div class="t">Brings the hand balloon with the “I” tag down from the ceiling and holds it up to Len.</div></div>
+    <div class="row act" data-who="Ryan"><div class="n">Ryan (laptop)</div><div class="t">→ the I drops in. → the link types itself. → the hidden page opens and the hand bleeds.</div></div>
+    <div class="row act" data-who="Kayee Jeda"><div class="n">Kayee &amp; Jeda</div><div class="t">Scream again when the splinter pops out.</div></div>
+    <div class="row act" data-who="Ryan"><div class="n">Ryan (laptop)</div><div class="t">Click HAND-OFF. The premiere countdown starts. Done.</div></div>
+  </div>
+
+  <div class="box">
+    <b>Bring</b>
+    <ul>
+      <li>A hand balloon with an “I” tag (AJ)</li>
+      <li>Laptop on the projector, sound on, <a href="https://ryrycd.github.io/pitch/">ryrycd.github.io/pitch</a> open in full screen (Ryan)</li>
+    </ul>
+    <b>Keys</b>: → or click to advance, ← to go back, F for full screen.<br>
+    No ceiling access? AJ just holds the balloon up.
+  </div>
+</div>
+<script>
+  var people = ["Ryan", "Omar", "Michael", "Kayee", "Jeda", "AJ"];
+  var who = document.getElementById("who"), script = document.getElementById("script");
+  var rows = script.querySelectorAll(".row");
+  function pick(name) {
+    who.querySelectorAll(".chip").forEach(function (c) { c.setAttribute("aria-pressed", c.textContent === name ? "true" : "false"); });
+    rows.forEach(function (r) { r.classList.toggle("mine", !!name && r.dataset.who.split(" ").indexOf(name) > -1); });
+    script.classList.toggle("dim", !!name);
+    try { name ? localStorage.setItem("handWho", name) : localStorage.removeItem("handWho"); } catch (e) {}
+  }
+  people.forEach(function (p) {
+    var b = document.createElement("button");
+    b.className = "chip"; b.textContent = p; b.setAttribute("aria-pressed", "false");
+    b.onclick = function () { pick(b.getAttribute("aria-pressed") === "true" ? null : p); };
+    who.appendChild(b);
+  });
+  try { var saved = localStorage.getItem("handWho"); if (saved) pick(saved); } catch (e) {}
+</script>
+</body>
+</html>

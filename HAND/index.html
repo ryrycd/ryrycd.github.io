@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta name="darkreader-lock">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
 <title>HAND | Eudai Films</title>
@@ -42,7 +43,7 @@
     background: var(--pill); padding: 3px 6px; border-radius: 2px;
     transition: background .2s, color .2s;
   }
-  nav a:hover { background: var(--ink); color: #fff; }
+  nav a:hover, nav a.hov { background: var(--ink); color: #fff; }
   .logo img { height: 34px; width: auto; display: block; }
 
   .found {
@@ -106,6 +107,13 @@
   html.auto, html.auto * { cursor: none !important; }
   .fakecursor { position: fixed; left: 0; top: 0; z-index: 40; width: 34px; height: 50px; pointer-events: none; opacity: 0;
                 filter: drop-shadow(0 3px 5px rgba(0,0,0,.35)); transform-origin: 3px 3px; }
+  /* fake right-click menu (macOS Chrome style) */
+  .ctx { position: fixed; z-index: 39; min-width: 236px; padding: 5px; border-radius: 9px; background: rgba(236,236,238,.97);
+         box-shadow: 0 0 0 .5px rgba(0,0,0,.22), 0 10px 30px rgba(0,0,0,.28); font: 400 13.5px -apple-system, "Helvetica Neue", Arial, sans-serif; color: #1d1d1f;
+         opacity: 0; transform: scale(.97); transform-origin: 0 0; pointer-events: none; }
+  .ctx div { padding: 4px 10px; border-radius: 5px; white-space: nowrap; }
+  .ctx div.on { background: #2f6fe4; color: #fff; }
+  .ctx hr { border: 0; height: 1px; background: rgba(0,0,0,.12); margin: 5px 9px; }
   .handoff.press { transform: translateY(1px) scale(.95) !important; transition: transform .08s; }
 
   .flood {
@@ -241,6 +249,7 @@
 </div>
 
 <div class="flood" id="flood"></div>
+<div class="ctx" id="ctx" aria-hidden="true"><div id="ctxNew">Open Link in New Tab</div><div>Open Link in New Window</div><div>Open Link in Incognito Window</div><hr><div>Save Link As…</div><div>Copy Link Address</div><hr><div>Inspect</div></div>
 <svg class="fakecursor" id="fakecursor" viewBox="0 0 17 25" aria-hidden="true"><path d="M1.5 1.5v19.2l4.6-4.4 2.9 6.9 3.3-1.4-2.9-6.8 6.4-.1z" fill="#000" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/></svg>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
@@ -249,6 +258,8 @@
   var DEST = "/HAND/premiere/";
   var AUTO = /[?&]auto=1/.test(location.search);            // opened by the pitch screen: click HAND-OFF by itself
   if (AUTO) document.documentElement.classList.add("auto");
+  var detourDone, detour = new Promise(function (r) { detourDone = r; });
+  if (!AUTO) detourDone();
   var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var drips = Array.prototype.slice.call(document.querySelectorAll("#blood .drip"));
   var heads = Array.prototype.slice.call(document.querySelectorAll("#blood .head"));
@@ -276,7 +287,7 @@
   if (!window.gsap || reduce) {
     if (!window.gsap) { cta.style.opacity = 1; cta.classList.add("ready"); if (AUTO) setTimeout(function () { location.href = DEST; }, 2500); return; }
     finalState();
-    if (AUTO) setTimeout(autoClick, 1200);
+    if (AUTO) { detourDone(); setTimeout(autoClick, 1200); }
   } else {
     gsap.set(["#handBody", "#splinterFollow"], { svgOrigin: "300 820" });
     gsap.set("#infection", { svgOrigin: "330 532" });
@@ -333,7 +344,8 @@
     tl.to("#pool", { height: function () { return poolHeight(); }, duration: 1.4, ease: "power2.out" }, 3.9)
       .to(cta, { opacity: 1, duration: 0.3 }, 4.6)
       .to(cta, { yPercent: 0, duration: 0.9, ease: "back.out(1.6)",
-        onComplete: function () { cta.classList.add("ready"); if (AUTO) autoClick(); } }, 4.6);
+        onComplete: function () { cta.classList.add("ready"); if (AUTO) detour.then(autoClick); } }, 4.6);
+    if (AUTO) tl.add(function () { filmsDetour(); }, 2.9);
 
     // slow ongoing drip + heartbeat after the intro
     tl.add(function () {
@@ -344,11 +356,38 @@
     window.__skip = function () { tl.progress(1); };
   }
 
-  // the fake mouse: glides in from the lower right, hovers, clicks
+  // the fake mouse, part 1: right-clicks "Films" top left and opens it in a new tab (the pitch screen shows the tab appear)
+  function filmsDetour() {
+    var cur = document.getElementById("fakecursor"), ctx = document.getElementById("ctx"), item = document.getElementById("ctxNew");
+    var films = document.querySelector('nav a[href="/films/"]');
+    if (!films) { detourDone(); return; }
+    var f = films.getBoundingClientRect(), fx = f.left + f.width * 0.55, fy = f.top + f.height * 0.6;
+    gsap.set(cur, { x: innerWidth * 0.80, y: innerHeight * 0.62, opacity: 0 });
+    gsap.timeline({ onComplete: detourDone })
+      .to(cur, { opacity: 1, duration: 0.2 })
+      .to(cur, { x: fx, y: fy, duration: 0.95, ease: "power2.inOut" }, 0.05)
+      .add(function () { films.classList.add("hov"); }, 0.9)
+      .to(cur, { scale: 0.86, duration: 0.07 }, 1.3)                                   // right-click
+      .to(cur, { scale: 1, duration: 0.08 }, 1.37)
+      .add(function () { gsap.set(ctx, { left: fx + 2, top: fy + 2 }); }, 1.37)
+      .to(ctx, { opacity: 1, scale: 1, duration: 0.1 }, 1.37)
+      .add(function () { var r = item.getBoundingClientRect(); gsap.to(cur, { x: r.left + 70, y: r.top + r.height * 0.6, duration: 0.35, ease: "power2.out" }); }, 1.6)
+      .add(function () { item.classList.add("on"); }, 1.85)
+      .to(cur, { scale: 0.86, duration: 0.07 }, 2.15)                                  // click "Open Link in New Tab"
+      .to(cur, { scale: 1, duration: 0.08 }, 2.22)
+      .add(function () {
+        item.classList.remove("on");
+        try { if (window.parent !== window) window.parent.postMessage({ hand: "newtab", title: "Films | Eudai Films" }, location.origin); } catch (e) {}
+      }, 2.24)
+      .to(ctx, { opacity: 0, duration: 0.12 }, 2.3)
+      .add(function () { films.classList.remove("hov"); }, 2.5);
+  }
+
+  // the fake mouse, part 2: from wherever it is, to HAND-OFF, hover, click
   function autoClick() {
     var cur = document.getElementById("fakecursor"), btn = document.getElementById("handoff");
     var r = btn.getBoundingClientRect(), tx = r.left + r.width * 0.56, ty = r.top + r.height * 0.52;
-    gsap.set(cur, { x: innerWidth * 0.80, y: innerHeight * 0.62, opacity: 0 });
+    if (gsap.getProperty(cur, "opacity") < 0.5) gsap.set(cur, { x: innerWidth * 0.80, y: innerHeight * 0.62, opacity: 0 });
     gsap.timeline({ delay: 0.35 })
       .to(cur, { opacity: 1, duration: 0.2 })
       .to(cur, { x: tx, y: ty, duration: 1.05, ease: "power2.inOut" }, 0.05)

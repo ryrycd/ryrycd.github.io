@@ -21,8 +21,18 @@
   .slot { position: absolute; left: 1496px; top: 602px; width: 80px; height: 12px; background: #ffcc00; animation: blink 0.67s steps(1) infinite; }
   .slot.off { display: none; }
   @keyframes blink { 50% { opacity: 0; } }
-  .lastT { position: absolute; left: 1492px; top: 446px; font-size: 150px; font-weight: 700; line-height: 1; color: #ffcc00; transform: translateY(-900px); }
-  .lastT.in { transition: transform .9s cubic-bezier(.2,.9,.25,1); transform: translateY(0); }
+  .lastT { position: absolute; left: 1492px; top: 446px; font-size: 150px; font-weight: 700; line-height: 1; color: #ffcc00; opacity: 0; transform: scale(1.7); transform-origin: 50% 60%; }
+  .lastT.in { transition: opacity .2s linear .78s, transform .5s cubic-bezier(.2,1.5,.4,1) .78s; opacity: 1; transform: none; }
+  /* the last hand: falls in from above with its T painted on, lands over the gap, then hovers */
+  .handfall { position: absolute; left: 1252px; top: 118px; width: 660px; opacity: 0; transform: translateY(-1000px) rotate(-16deg);
+              filter: drop-shadow(0 34px 44px rgba(0,0,0,.6)); will-change: transform; }
+  .handfall.in { opacity: 1; animation: fall .95s forwards, bob 3.4s ease-in-out .95s infinite; }
+  @keyframes fall {
+    0%   { transform: translateY(-1000px) rotate(-16deg); animation-timing-function: cubic-bezier(.55,0,.9,.55); }
+    72%  { transform: translateY(26px) rotate(4deg);     animation-timing-function: cubic-bezier(.2,.8,.4,1); }
+    86%  { transform: translateY(-10px) rotate(-1.5deg); animation-timing-function: ease-in-out; }
+    100% { transform: translateY(0) rotate(0deg); } }
+  @keyframes bob { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-12px) rotate(.8deg); } }
   .note { position: absolute; left: 0; right: 0; top: 679px; text-align: center; font-size: 40px; font-weight: 500; color: #96928c; transition: color .4s; }
   .note.hit { color: #f5f2ec; }
   /* the browser bar that types the link */
@@ -42,6 +52,7 @@
   <div class="card" id="card">
     <div class="word"><span class="a">bit.ly/</span><span class="b">PULLITOU</span></div>
     <div class="slot" id="slot"></div>
+    <img class="handfall" id="handfall" src="hand_T.png" alt="">
     <div class="lastT" id="lastT">T</div>
     <div class="note" id="note">9 hands found. 1 still missing.</div>
     <div class="browser" id="browser"><div class="dots"><i></i><i></i><i></i></div><span id="typed"></span><span class="caret"></span></div>
@@ -52,7 +63,7 @@
 /* Run of show:
    →  plays the film (sound on). It ends on bit.ly/PULLITOU_ with one letter missing.
    (the last hand balloon comes down from the ceiling, with a T on its tag)
-   →  the T drops into place
+   →  the last hand (Hays, Kansas, with a T painted on) falls in and the T lands in the link
    →  the link types itself into a browser bar
    →  opens the hidden /HAND page (the splinter, then HAND-OFF to the premiere)
    ←  steps back · R restarts · F full screen */
@@ -62,7 +73,7 @@ const CONFIG = {
   openLink: "https://ryrycd.github.io/HAND/"
 };
 const stage = document.getElementById("stage"), film = document.getElementById("film"), card = document.getElementById("card");
-const slot = document.getElementById("slot"), lastT = document.getElementById("lastT"), note = document.getElementById("note");
+const slot = document.getElementById("slot"), lastT = document.getElementById("lastT"), note = document.getElementById("note"), handfall = document.getElementById("handfall");
 const browser = document.getElementById("browser"), typed = document.getElementById("typed"), hint = document.getElementById("hint");
 function fit() { const s = Math.min(innerWidth / 1920, innerHeight / 1080); stage.style.transformOrigin = "50% 50%"; stage.style.transform = `translate(-50%, -50%) scale(${s})`; }
 addEventListener("resize", fit); fit();
@@ -71,8 +82,8 @@ let step = 0, typer = null;
 function render() {
   card.classList.toggle("on", step >= 2);
   slot.classList.toggle("off", step >= 3);
-  if (step >= 3) { lastT.classList.add("in"); note.textContent = "10 hands found."; note.classList.add("hit"); }
-  else { lastT.classList.remove("in"); note.textContent = "9 hands found. 1 still missing."; note.classList.remove("hit"); }
+  if (step >= 3) { lastT.classList.add("in"); handfall.classList.add("in"); note.textContent = "10 hands found."; note.classList.add("hit"); }
+  else { lastT.classList.remove("in"); handfall.classList.remove("in"); note.textContent = "9 hands found. 1 still missing."; note.classList.remove("hit"); }
   browser.classList.toggle("on", step >= 4);
   if (step >= 4 && !typer && typed.textContent !== CONFIG.typed) typeLink();
   if (step < 4) { clearInterval(typer); typer = null; typed.textContent = ""; }

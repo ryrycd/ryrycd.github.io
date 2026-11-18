@@ -19,8 +19,12 @@
   /* the end card, matched to the film's last frame */
   .word { position: absolute; left: 340px; top: 446px; height: 180px; font-size: 150px; font-weight: 700; line-height: 1; white-space: pre; letter-spacing: 0; }
   .word .a { color: #f5f2ec; } .word .b { color: #ffcc00; }
-  .slot { position: absolute; left: 1496px; top: 602px; width: 80px; height: 12px; background: #ffcc00; animation: blink 0.67s steps(1) infinite; }
+  .slot { position: absolute; left: 1482px; top: 452px; width: 104px; height: 152px; border: 5px dashed #ffcc00; border-radius: 16px;
+          display: grid; place-items: center; color: #ffcc00; font-size: 104px; font-weight: 700; line-height: 1;
+          opacity: 0; transition: opacity .4s ease .25s; }
+  .card.on .slot { opacity: 1; animation: pulse 1.3s ease-in-out .7s infinite; }
   .slot.off { display: none; }
+  @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .45; transform: scale(.96); } }
   @keyframes blink { 50% { opacity: 0; } }
   .lastT { position: absolute; left: 1492px; top: 446px; font-size: 150px; font-weight: 700; line-height: 1; color: #ffcc00; opacity: 0; transform: scale(1.7); transform-origin: 50% 60%; }
   .lastT.in { transition: opacity .2s linear .78s, transform .5s cubic-bezier(.2,1.5,.4,1) .78s; opacity: 1; transform: none; }
@@ -34,7 +38,7 @@
     86%  { transform: translateY(-10px) rotate(-1.5deg); animation-timing-function: ease-in-out; }
     100% { transform: translateY(0) rotate(0deg); } }
   @keyframes bob { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-12px) rotate(.8deg); } }
-  .note { position: absolute; left: 0; right: 0; top: 679px; text-align: center; font-size: 40px; font-weight: 500; color: #96928c; transition: color .4s; }
+  .note { position: absolute; left: 0; right: 0; top: 672px; text-align: center; font-size: 50px; font-weight: 600; color: #c9c5be; transition: color .4s; }
   .note.hit { color: #f5f2ec; }
   /* the browser bar that types the link */
   .browser { position: absolute; left: 360px; right: 360px; top: 800px; height: 96px; border-radius: 18px; background: #ececec; color: #111;
@@ -84,10 +88,10 @@
   <video id="film" src="hand_intro.mp4" preload="auto" playsinline></video>
   <div class="card" id="card">
     <div class="word"><span class="a">bit.ly/</span><span class="b">PULLITOU</span></div>
-    <div class="slot" id="slot"></div>
+    <div class="slot" id="slot">?</div>
     <img class="handfall" id="handfall" src="hand_T.png" alt="">
     <div class="lastT" id="lastT">T</div>
-    <div class="note" id="note">9 hands found. 1 still missing.</div>
+    <div class="note" id="note">9 hands found. <b style="color:#ffcc00">1 still missing.</b></div>
     <div class="browser" id="browser"><div class="dots"><i></i><i></i><i></i></div><span id="typed"></span><span class="caret"></span></div>
   </div>
 </div>
@@ -128,7 +132,7 @@ function render() {
   card.classList.toggle("on", step >= 2);
   slot.classList.toggle("off", step >= 3);
   if (step >= 3) { lastT.classList.add("in"); handfall.classList.add("in"); note.textContent = "10 hands found."; note.classList.add("hit"); }
-  else { lastT.classList.remove("in"); handfall.classList.remove("in"); note.textContent = "9 hands found. 1 still missing."; note.classList.remove("hit"); }
+  else { lastT.classList.remove("in"); handfall.classList.remove("in"); note.innerHTML = '9 hands found. <b style="color:#ffcc00">1 still missing.</b>'; note.classList.remove("hit"); }
   browser.classList.toggle("on", step >= 4);
   if (step < 4) { typed.textContent = ""; browser.classList.remove("enter"); closeWeb(); }
   htext.textContent = ["→ start film · F full screen", "", "→ drop the T hand", "→ open the link", "", ""][step];

@@ -90,7 +90,7 @@
     transition: background .2s, transform .2s;
     position: relative;
   }
-  .handoff:hover, .handoff:focus-visible { background: var(--blood-hi); transform: translateY(-3px) rotate(-1deg); outline: none; }
+  .handoff:hover, .handoff:focus-visible, .handoff.hov { background: var(--blood-hi); transform: translateY(-3px) rotate(-1deg); outline: none; }
   .handoff .play {
     width: 0.78em; height: 0.78em; border-radius: 50%; background: #fff;
     display: grid; place-items: center; flex: none;
@@ -99,8 +99,14 @@
     content: ""; margin-left: 0.08em;
     border-left: 0.24em solid var(--ink); border-top: 0.15em solid transparent; border-bottom: 0.15em solid transparent;
   }
-  .handoff:hover .play::after { border-left-color: var(--blood-hi); }
+  .handoff:hover .play::after, .handoff.hov .play::after { border-left-color: var(--blood-hi); }
   .sub { font-size: 13px; font-weight: 500; color: #fff; opacity: .85; letter-spacing: .02em; text-shadow: 0 1px 2px rgba(0,0,0,.4); }
+
+  /* auto mode (opened from the pitch screen): a fake mouse clicks HAND-OFF by itself */
+  html.auto, html.auto * { cursor: none !important; }
+  .fakecursor { position: fixed; left: 0; top: 0; z-index: 40; width: 34px; height: 50px; pointer-events: none; opacity: 0;
+                filter: drop-shadow(0 3px 5px rgba(0,0,0,.35)); transform-origin: 3px 3px; }
+  .handoff.press { transform: translateY(1px) scale(.95) !important; transition: transform .08s; }
 
   .flood {
     position: fixed; inset: 0; z-index: 30; background: var(--blood);
@@ -235,11 +241,14 @@
 </div>
 
 <div class="flood" id="flood"></div>
+<svg class="fakecursor" id="fakecursor" viewBox="0 0 17 25" aria-hidden="true"><path d="M1.5 1.5v19.2l4.6-4.4 2.9 6.9 3.3-1.4-2.9-6.8 6.4-.1z" fill="#000" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/></svg>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script>
 (function () {
   var DEST = "/HAND/premiere/";
+  var AUTO = /[?&]auto=1/.test(location.search);            // opened by the pitch screen: click HAND-OFF by itself
+  if (AUTO) document.documentElement.classList.add("auto");
   var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var drips = Array.prototype.slice.call(document.querySelectorAll("#blood .drip"));
   var heads = Array.prototype.slice.call(document.querySelectorAll("#blood .head"));
@@ -265,8 +274,9 @@
   }
 
   if (!window.gsap || reduce) {
-    if (!window.gsap) { cta.style.opacity = 1; cta.classList.add("ready"); return; }
+    if (!window.gsap) { cta.style.opacity = 1; cta.classList.add("ready"); if (AUTO) setTimeout(function () { location.href = DEST; }, 2500); return; }
     finalState();
+    if (AUTO) setTimeout(autoClick, 1200);
   } else {
     gsap.set(["#handBody", "#splinterFollow"], { svgOrigin: "300 820" });
     gsap.set("#infection", { svgOrigin: "330 532" });
@@ -323,7 +333,7 @@
     tl.to("#pool", { height: function () { return poolHeight(); }, duration: 1.4, ease: "power2.out" }, 3.9)
       .to(cta, { opacity: 1, duration: 0.3 }, 4.6)
       .to(cta, { yPercent: 0, duration: 0.9, ease: "back.out(1.6)",
-        onComplete: function () { cta.classList.add("ready"); } }, 4.6);
+        onComplete: function () { cta.classList.add("ready"); if (AUTO) autoClick(); } }, 4.6);
 
     // slow ongoing drip + heartbeat after the intro
     tl.add(function () {
@@ -332,6 +342,21 @@
 
     // let people skip the intro
     window.__skip = function () { tl.progress(1); };
+  }
+
+  // the fake mouse: glides in from the lower right, hovers, clicks
+  function autoClick() {
+    var cur = document.getElementById("fakecursor"), btn = document.getElementById("handoff");
+    var r = btn.getBoundingClientRect(), tx = r.left + r.width * 0.56, ty = r.top + r.height * 0.52;
+    gsap.set(cur, { x: innerWidth * 0.80, y: innerHeight * 0.62, opacity: 0 });
+    gsap.timeline({ delay: 0.35 })
+      .to(cur, { opacity: 1, duration: 0.2 })
+      .to(cur, { x: tx, y: ty, duration: 1.05, ease: "power2.inOut" }, 0.05)
+      .add(function () { btn.classList.add("hov"); }, 0.95)
+      .to(cur, { scale: 0.86, duration: 0.08 }, 1.45)
+      .add(function () { btn.classList.add("press"); }, 1.45)
+      .to(cur, { scale: 1, duration: 0.1 }, 1.55)
+      .add(function () { btn.classList.remove("press"); go(); }, 1.6);
   }
 
   function go(e) {

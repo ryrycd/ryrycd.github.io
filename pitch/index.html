@@ -44,6 +44,27 @@
   .dots i:nth-child(2) { background: #febc2e; } .dots i:nth-child(3) { background: #28c840; }
   .caret { width: 3px; height: 50px; background: #111; animation: blink 1s steps(1) infinite; margin-left: -18px; }
   .hint { position: fixed; right: 18px; bottom: 14px; font: 500 13px "Helvetica Neue", Arial, sans-serif; color: #444; letter-spacing: .02em; transition: opacity .4s; }
+  /* the web: the link opens here, inside the pitch screen, so full screen and sound carry on */
+  .web { position: fixed; inset: 0; z-index: 5; background: #0b0b0c; display: flex; flex-direction: column; opacity: 0; pointer-events: none; transition: opacity .45s ease; }
+  .web.on { opacity: 1; pointer-events: auto; }
+  .chrome { flex: none; height: 52px; background: #dedede; display: flex; align-items: center; gap: 18px; padding: 0 18px; border-bottom: 1px solid #c9c9c9; }
+  .chrome .dots i { width: 13px; height: 13px; }
+  .url { flex: 1; max-width: 760px; margin: 0 auto; height: 34px; border-radius: 9px; background: #fff; color: #222; display: flex; align-items: center; justify-content: center; gap: 8px;
+         font: 500 16px "Helvetica Neue", Arial, sans-serif; }
+  .url .lock { width: 11px; height: 13px; border: 2px solid #777; border-radius: 3px; position: relative; top: 2px; }
+  .url .lock::before { content: ""; position: absolute; left: 1px; top: -8px; width: 5px; height: 7px; border: 2px solid #777; border-bottom: 0; border-radius: 5px 5px 0 0; }
+  .load { position: absolute; left: 0; top: 50px; height: 3px; width: 0; background: #2f7cf6; transition: width 1.2s cubic-bezier(.2,.8,.3,1), opacity .3s; }
+  .web iframe { flex: 1; width: 100%; border: 0; background: #0b0b0c; opacity: 0; transition: opacity .25s; }
+  .web iframe.ready { opacity: 1; }
+  .browser.enter { background: #fff; box-shadow: 0 0 0 4px rgba(47,124,246,.55); }
+  /* one-time setup click: gives the page permission to play sound, goes full screen */
+  .arm { position: fixed; inset: 0; z-index: 20; background: rgba(0,0,0,.86); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
+         font: 500 22px "Helvetica Neue", Arial, sans-serif; color: #ddd; cursor: pointer; text-align: center; padding: 24px; }
+  .arm b { font-size: 40px; color: #fff; font-weight: 700; }
+  .arm small { color: #888; font-size: 16px; }
+  .arm.off { display: none; }
+  .rdot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #555; margin-right: 7px; vertical-align: 1px; }
+  .rdot.ok { background: #2bb24c; }
 </style>
 </head>
 <body>
@@ -58,61 +79,137 @@
     <div class="browser" id="browser"><div class="dots"><i></i><i></i><i></i></div><span id="typed"></span><span class="caret"></span></div>
   </div>
 </div>
-<div class="hint" id="hint">→ start film · F full screen</div>
+<div class="web" id="web">
+  <div class="chrome"><div class="dots"><i></i><i></i><i></i></div><div class="url"><span class="lock"></span><span id="url">bit.ly/PULLITOUT</span></div><div style="width:70px"></div></div>
+  <div class="load" id="load"></div>
+  <iframe id="site" allow="autoplay; fullscreen" title="HAND"></iframe>
+</div>
+<div class="arm" id="arm"><b>HAND pitch screen</b>Click once to turn sound on and go full screen.<small><span class="rdot" id="rdot0"></span><span id="rtext0">Connecting to the phone remote…</span></small></div>
+<div class="hint" id="hint"><span class="rdot" id="rdot"></span><span id="htext">→ start film · F full screen</span></div>
 <script>
-/* Run of show:
-   →  plays the film (sound on). It ends on bit.ly/PULLITOU_ with one letter missing.
-   (the last hand balloon comes down from the ceiling, with a T on its tag)
-   →  the last hand (Hays, Kansas, with a T painted on) falls in and the T lands in the link
-   →  the link types itself into a browser bar
-   →  opens the hidden /HAND page (the splinter, then HAND-OFF to the premiere)
+/* Run of show (phone remote at /pitch/remote/, or → on the laptop / a clicker):
+   click 1  plays the film (sound on). It ends on bit.ly/PULLITOU_ by itself.
+   click 2  the last hand (with a T painted on) falls in and the T lands in the link
+   click 3  types bit.ly/PULLITOUT, opens /HAND, a mouse clicks HAND-OFF by itself, the premiere starts
+   after    the remote pauses / plays the premiere
    ←  steps back · R restarts · F full screen */
 const CONFIG = {
   typed: "bit.ly/PULLITOUT",
-  // bit.ly/PULLITOUT currently points at Eudai's film page; once it's repointed in Bitly this can be "https://bit.ly/PULLITOUT"
-  openLink: "https://ryrycd.github.io/HAND/"
+  openLink: "/HAND/?auto=1",                      // where bit.ly/PULLITOUT should land
+  shown: { "/HAND/": "eudaifilms.com/HAND", "/HAND/premiere/": "eudaifilms.com/HAND/premiere" },
+  relay: "https://ntfy.sh/", topic: "hand-pitch-w619kl6zuqvai5"
 };
-const stage = document.getElementById("stage"), film = document.getElementById("film"), card = document.getElementById("card");
-const slot = document.getElementById("slot"), lastT = document.getElementById("lastT"), note = document.getElementById("note"), handfall = document.getElementById("handfall");
-const browser = document.getElementById("browser"), typed = document.getElementById("typed"), hint = document.getElementById("hint");
+const $ = id => document.getElementById(id);
+const stage = $("stage"), film = $("film"), card = $("card"), slot = $("slot"), lastT = $("lastT"), note = $("note"), handfall = $("handfall");
+const browser = $("browser"), typed = $("typed"), hint = $("hint"), htext = $("htext"), web = $("web"), site = $("site"), url = $("url"), load = $("load"), arm = $("arm");
 function fit() { const s = Math.min(innerWidth / 1920, innerHeight / 1080); stage.style.transformOrigin = "50% 50%"; stage.style.transform = `translate(-50%, -50%) scale(${s})`; }
 addEventListener("resize", fit); fit();
 
-let step = 0, typer = null;
+// steps: 0 ready · 1 film · 2 end card · 3 T hand landed · 4 link typing → /HAND → HAND-OFF (runs by itself) · 5 premiere
+let step = 0, typer = null, timers = [];
+const later = (f, ms) => timers.push(setTimeout(f, ms));
+function clearTimers() { timers.forEach(clearTimeout); timers = []; clearInterval(typer); typer = null; }
 function render() {
   card.classList.toggle("on", step >= 2);
   slot.classList.toggle("off", step >= 3);
   if (step >= 3) { lastT.classList.add("in"); handfall.classList.add("in"); note.textContent = "10 hands found."; note.classList.add("hit"); }
   else { lastT.classList.remove("in"); handfall.classList.remove("in"); note.textContent = "9 hands found. 1 still missing."; note.classList.remove("hit"); }
   browser.classList.toggle("on", step >= 4);
-  if (step >= 4 && !typer && typed.textContent !== CONFIG.typed) typeLink();
-  if (step < 4) { clearInterval(typer); typer = null; typed.textContent = ""; }
-  hint.textContent = ["→ start film · F full screen", "", "→ drop the last letter", "→ type the link", "→ open it"][Math.min(step, 4)];
-  hint.style.opacity = step === 1 ? 0 : 1;
+  if (step < 4) { typed.textContent = ""; browser.classList.remove("enter"); closeWeb(); }
+  htext.textContent = ["→ start film · F full screen", "", "→ drop the T hand", "→ open the link", "", ""][step];
+  hint.style.opacity = (step === 1 || step >= 4) ? 0 : 1;
 }
-function typeLink() {
+function openLink() {
   let i = 0; typed.textContent = "";
-  typer = setInterval(() => { i++; typed.textContent = CONFIG.typed.slice(0, i); if (i >= CONFIG.typed.length) { clearInterval(typer); typer = null; } }, 70);
+  typer = setInterval(() => {
+    i++; typed.textContent = CONFIG.typed.slice(0, i);
+    if (i >= CONFIG.typed.length) {
+      clearInterval(typer); typer = null;
+      later(() => browser.classList.add("enter"), 450);          // "Enter"
+      later(openWeb, 750);
+    }
+  }, 75);
 }
-film.addEventListener("ended", () => { if (step === 1) { step = 2; render(); } });
+function openWeb() {
+  url.textContent = CONFIG.typed; site.classList.remove("ready"); load.style.transition = "none"; load.style.width = "0"; load.style.opacity = 1;
+  web.classList.add("on");
+  requestAnimationFrame(() => { load.style.transition = ""; load.style.width = "70%"; });
+  site.src = CONFIG.openLink;
+}
+function closeWeb() { if (!web.classList.contains("on") && !site.getAttribute("src")) return; web.classList.remove("on"); site.classList.remove("ready"); site.removeAttribute("src"); site.src = "about:blank"; }
+site.addEventListener("load", () => {
+  let path = ""; try { path = site.contentWindow.location.pathname; } catch (e) {}
+  if (!CONFIG.shown[path]) return;
+  url.textContent = CONFIG.shown[path]; load.style.width = "100%"; setTimeout(() => load.style.opacity = 0, 350);
+  site.classList.add("ready");
+  if (path.includes("premiere") && step === 4) { step = 5; render(); publish(); }
+});
+function premiereVideo() { try { return site.contentDocument.querySelector("video"); } catch (e) { return null; } }
+film.addEventListener("ended", () => { if (step === 1) { step = 2; render(); publish(); } });
+
 function next() {
-  if (step === 0) { step = 1; render(); film.currentTime = 0; film.muted = false; film.play().catch(() => { film.muted = true; film.play(); }); return; }
-  if (step === 1) { film.pause(); step = 2; render(); return; }        // skip the film if needed
-  if (step < 4) { step++; render(); return; }
-  location.href = CONFIG.openLink;
+  if (step === 0) { step = 1; render(); film.currentTime = 0; film.muted = false; film.play().catch(() => { film.muted = true; film.play(); }); }
+  else if (step === 1) { film.pause(); step = 2; render(); }        // skip the film if needed
+  else if (step === 2) { step = 3; render(); }
+  else if (step === 3) { step = 4; render(); openLink(); }
+  else if (step === 4) { return; }                                  // running by itself
+  else if (step === 5) { const v = premiereVideo(); if (v) { v.paused ? v.play() : v.pause(); } }
+  publish();
 }
 function back() {
+  clearTimers();
   if (step === 0) return;
-  if (step <= 2) { film.pause(); film.currentTime = 0; step = 0; render(); return; }
-  step--; render();
+  if (step <= 2) { film.pause(); film.currentTime = 0; step = 0; }
+  else if (step >= 4) { step = 3; }
+  else step--;
+  render(); publish();
 }
+function restart() { clearTimers(); film.pause(); film.currentTime = 0; step = 0; render(); publish(); }
+
+// ---- phone remote: commands arrive over a tiny public relay (ntfy.sh), state goes back the same way ----
+const seen = new Set(); let es = null; const me = Math.random().toString(36).slice(2); let passive = false;   // passive: another laptop page took over
+function publish() {
+  const v = premiereVideo();
+  const st = { step, at: Date.now(), filmLeft: step === 1 ? Math.max(0, (film.duration || 21) - film.currentTime) : 0, paused: v ? v.paused : null, armed: !arm.classList.contains("off") ? false : true };
+  fetch(CONFIG.relay + CONFIG.topic + "-state", { method: "POST", body: JSON.stringify(st) }).catch(() => {});
+}
+function setRemote(ok) { $("rdot").classList.toggle("ok", ok); $("rdot0").classList.toggle("ok", ok); $("rtext0").textContent = ok ? "Phone remote ready" : "Connecting to the phone remote…"; }
+function listen() {
+  es = new EventSource(CONFIG.relay + CONFIG.topic + "-cmd/sse");
+  es.onopen = () => setRemote(true);
+  es.onerror = () => setRemote(false);
+  es.onmessage = e => {
+    let m; try { const d = JSON.parse(e.data); if (d.event && d.event !== "message") return; m = JSON.parse(d.message); } catch (err) { return; }
+    if (!m || seen.has(m.id) || Date.now() - m.t > 30000) return; seen.add(m.id);
+    if (m.act === "claim") { passive = m.who !== me; setRemote(!passive); if (passive) $("rtext0").textContent = "Another pitch screen has the remote"; return; }
+    if (passive) return;
+    if (m.act === "next" && m.from === step) next();
+    else if (m.act === "back" && m.from === step) back();
+    else if (m.act === "restart") restart();
+    else publish();                                                 // ping, or a stale tap: just report where we are
+  };
+}
+listen(); publish();
+setInterval(() => { if (es && es.readyState === 2) listen(); }, 5000);
+
+// one real click on the laptop first: lets the film and premiere play with sound, and goes full screen
+function doArm(e) {
+  if (arm.classList.contains("off")) return false;
+  arm.classList.add("off"); passive = false; setRemote(true);
+  fetch(CONFIG.relay + CONFIG.topic + "-cmd", { method: "POST", body: JSON.stringify({ id: me + "c", t: Date.now(), act: "claim", who: me }) }).catch(() => {});
+  publish();
+  if (!document.fullscreenElement && document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(() => {});
+  return true;
+}
+arm.addEventListener("click", e => { e.stopPropagation(); doArm(); });
 addEventListener("keydown", e => {
+  if (doArm()) { if (e.key !== "ArrowRight" && e.key !== " ") return; }
   if (["ArrowRight", " ", "Enter", "PageDown"].includes(e.key)) { e.preventDefault(); next(); }
   else if (["ArrowLeft", "PageUp", "Backspace"].includes(e.key)) { e.preventDefault(); back(); }
-  else if (e.key === "r" || e.key === "R") { film.pause(); film.currentTime = 0; step = 0; render(); }
+  else if (e.key === "r" || e.key === "R") restart();
   else if (e.key === "f" || e.key === "F") { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); }
 });
-addEventListener("click", next);
+stage.addEventListener("click", next);
 render();
 </script>
 </body>
